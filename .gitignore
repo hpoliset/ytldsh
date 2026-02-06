@@ -1,0 +1,57 @@
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Logs
+*.log
+
+# Downloaded content (don't commit music files)
+downloads/
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.opus
+*.wav
+
+# Playlist tracking files (user-specific)
+playlist_videos.csv
+.download_archive.txt
+
+# User-specific config (contains playlist IDs)
+# Note: Keep sync_youtube_playlist.sh but users should configure their own
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo
