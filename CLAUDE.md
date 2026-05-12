@@ -77,6 +77,9 @@ python3 yt_playlist_sync.py "PLxxxxx" -f m4a -q 320
 
 # Private playlist (needs cookies)
 python3 yt_playlist_sync.py "PLxxxxx" --cookies-from-browser chrome
+
+# For playlists where video titles are "Artist - Song Title" format
+python3 yt_playlist_sync.py "PLxxxxx" --parse-title-artist
 ```
 
 ### Debugging
