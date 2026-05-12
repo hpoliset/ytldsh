@@ -36,6 +36,9 @@ AUDIO_QUALITY="192"
 PYTHON_SCRIPT="$HOME/ytldsh/yt_playlist_sync.py"
 COOKIES_BROWSER="chrome"
 
+# Set to "true" if video titles follow "Artist - Song Title" format
+PARSE_TITLE_ARTIST="false"
+
 # =============================================================================
 # LOGGING (for debugging)
 # =============================================================================
@@ -79,14 +82,21 @@ echo "Using python3: $(which python3)"
 echo "Using yt-dlp: $(which yt-dlp)"
 echo "Python script: $PYTHON_SCRIPT"
 
-# Run sync with notifications enabled
+# Build optional flags
+EXTRA_FLAGS=""
+if [ "$PARSE_TITLE_ARTIST" = "true" ]; then
+    EXTRA_FLAGS="$EXTRA_FLAGS --parse-title-artist"
+fi
+
+# Run sync with notifications and metadata embedding enabled
 python3 "$PYTHON_SCRIPT" \
     "$PLAYLIST_ID" \
     --cookies-from-browser "$COOKIES_BROWSER" \
     --audio-format "$AUDIO_FORMAT" \
     --audio-quality "$AUDIO_QUALITY" \
     --output "$OUTPUT_DIR" \
-    --notify
+    --notify \
+    $EXTRA_FLAGS
 
 EXIT_CODE=$?
 echo "Sync finished with exit code: $EXIT_CODE"

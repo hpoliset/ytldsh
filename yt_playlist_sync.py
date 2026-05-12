@@ -289,26 +289,26 @@ def get_pending_downloads(csv_path, archive_path):
 def download_audio(videos, output_dir, audio_format='mp3', audio_quality='192',
                   cookies_from_browser=None, cookies_file=None, verbose=False,
                   archive_path=None, csv_path=None, use_cookies_for_download=False,
-                  send_notifications=False):
+                  send_notifications=False, parse_title_artist=False):
     """Download audio for videos not yet in archive using yt-dlp CLI."""
-    
+
     results = {'success': [], 'failed': [], 'skipped': []}
     total = len(videos)
-    
+
     print(f"\n🎵 Downloading audio for {total} videos...")
     print(f"Format: {audio_format.upper()} @ {audio_quality}kbps")
     print("=" * 60)
-    
+
     if send_notifications:
         notify("Downloading", f"Starting download of {total} songs...")
-    
+
     for idx, video in enumerate(videos, 1):
         url = video.get('url', '')
         video_id = video.get('video_id', '')
         title = video.get('title', 'Unknown')
-        
+
         print(f"\n[{idx}/{total}] {title[:50]}...")
-        
+
         # Build yt-dlp command line
         # NOTE: Do NOT use --cookies-from-browser here - it causes YouTube to serve
         # a degraded API that only returns thumbnails. Cookies are only needed for
@@ -320,11 +320,19 @@ def download_audio(videos, output_dir, audio_format='mp3', audio_quality='192',
             '--audio-quality', audio_quality,
             '-o', os.path.join(output_dir, '%(title)s.%(ext)s'),
             '--no-playlist',
+            '--embed-metadata',   # Embed title, date, description, etc. as file tags
+            '--embed-thumbnail',  # Embed album art from video thumbnail
+            # Map uploader channel name to the artist tag
+            '--parse-metadata', 'uploader:%(meta_artist)s',
         ]
-        
+
+        # Optionally try to split "Artist - Title" formatted video titles
+        if parse_title_artist:
+            cmd.extend(['--parse-metadata', r'title:(?P<meta_artist>.+?) - (?P<meta_title>.+)'])
+
         if archive_path:
             cmd.extend(['--download-archive', archive_path])
-        
+
         # Only use cookies for download if explicitly requested
         # Usually NOT needed and causes issues (degraded API response)
         if use_cookies_for_download:
@@ -428,6 +436,8 @@ Files created in output directory:
                         help='Download all videos in CSV, not just new ones')
     parser.add_argument('--use-cookies-for-download', action='store_true',
                         help='Also use cookies when downloading (usually not needed, may cause issues)')
+    parser.add_argument('--parse-title-artist', action='store_true',
+                        help='Try to split "Artist - Title" formatted video titles into separate tags')
     parser.add_argument('--notify', '-n', action='store_true',
                         help='Show macOS notifications for each download')
     parser.add_argument('--verbose', '-v', action='store_true',
@@ -537,7 +547,8 @@ Files created in output directory:
                 archive_path=archive_path,
                 csv_path=csv_path,
                 use_cookies_for_download=args.use_cookies_for_download,
-                send_notifications=args.notify
+                send_notifications=args.notify,
+                parse_title_artist=args.parse_title_artist,
             )
             
             print("\n" + "=" * 60)
