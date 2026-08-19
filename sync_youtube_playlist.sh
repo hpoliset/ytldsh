@@ -89,9 +89,13 @@ if [ "$PARSE_TITLE_ARTIST" = "true" ]; then
 fi
 
 # Run sync with notifications and metadata embedding enabled
+# --use-cookies-for-download is required as of mid-2026: YouTube's SABR-only
+# streaming rollout returns HTTP 403 on cookie-free download requests (see
+# CLAUDE.md "Cookie Usage" section for details).
 python3 "$PYTHON_SCRIPT" \
     "$PLAYLIST_ID" \
     --cookies-from-browser "$COOKIES_BROWSER" \
+    --use-cookies-for-download \
     --audio-format "$AUDIO_FORMAT" \
     --audio-quality "$AUDIO_QUALITY" \
     --output "$OUTPUT_DIR" \

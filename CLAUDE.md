@@ -27,12 +27,13 @@ Shell wrapper designed for Apple Shortcuts integration:
 ## Key Architecture Decisions
 
 ### Cookie Usage (IMPORTANT)
-**Cookies are ONLY used for playlist extraction, NOT for downloading individual videos.**
+**As of mid-2026, cookies are needed for BOTH playlist extraction AND downloading individual videos.**
 
 - Playlist extraction uses cookies to access private playlists
-- Individual video downloads do NOT use cookies (even if provided) unless `--use-cookies-for-download` is explicitly set
-- **Why**: YouTube's cookie-authenticated API returns a degraded response with only thumbnails, not actual audio/video streams
-- This is a critical design decision - do not change without understanding the implications
+- Individual video downloads use cookies only when `--use-cookies-for-download` is passed; `sync_youtube_playlist.sh` sets this by default
+- **Why**: YouTube rolled out SABR-only streaming with a PO-token requirement on cookie-free download requests (tracked upstream in [yt-dlp#12482](https://github.com/yt-dlp/yt-dlp/issues/12482)). Unauthenticated downloads now fail with `HTTP Error 403: Forbidden` on every video. An authenticated (cookie-bearing) session avoids this.
+- **Historical note**: earlier versions of this doc said the opposite - that cookies caused a degraded, thumbnail-only response on download. That was true at the time but YouTube's behavior has since flipped; if downloads start failing with 403 again in the future, re-verify this assumption with a direct `yt-dlp -v` test (with and without `--cookies-from-browser`) rather than trusting either direction blindly.
+- This is a critical, YouTube-behavior-dependent design decision - do not change without testing against real download failures
 
 ### File Tracking System
 The tool uses TWO tracking mechanisms:
@@ -150,7 +151,8 @@ Common issues and their causes:
 - **"Requested format is not available"** - yt-dlp needs updating
 - **"No videos found in playlist"** - Wrong playlist ID or needs cookies for private playlist
 - **"Command not found: yt-dlp"** - yt-dlp not installed or not in PATH
-- **Downloads fail with cookies** - Remove `--use-cookies-for-download` flag (should only be used for playlist extraction)
+- **Downloads fail with `HTTP Error 403: Forbidden` (no cookies)** - YouTube now requires an authenticated session for downloads too; add `--use-cookies-for-download` (see "Cookie Usage" above)
+- **Downloads fail even with `--use-cookies-for-download`** - yt-dlp may be out of date; `brew upgrade yt-dlp` and retry
 
 ## Maintenance
 
