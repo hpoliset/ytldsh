@@ -310,9 +310,6 @@ def download_audio(videos, output_dir, audio_format='mp3', audio_quality='192',
         print(f"\n[{idx}/{total}] {title[:50]}...")
 
         # Build yt-dlp command line
-        # NOTE: Do NOT use --cookies-from-browser here - it causes YouTube to serve
-        # a degraded API that only returns thumbnails. Cookies are only needed for
-        # private playlist extraction, not for downloading individual videos.
         cmd = [
             'yt-dlp',
             '-x',  # Extract audio (handles format selection automatically)
@@ -333,8 +330,11 @@ def download_audio(videos, output_dir, audio_format='mp3', audio_quality='192',
         if archive_path:
             cmd.extend(['--download-archive', archive_path])
 
-        # Only use cookies for download if explicitly requested
-        # Usually NOT needed and causes issues (degraded API response)
+        # As of mid-2026, YouTube's SABR-only streaming rollout requires a valid
+        # PO token on cookie-free download requests, which yt-dlp cannot supply
+        # on its own - unauthenticated downloads now fail with HTTP 403. Cookies
+        # (an authenticated session) are the workaround, so this should normally
+        # be enabled. See https://github.com/yt-dlp/yt-dlp/issues/12482
         if use_cookies_for_download:
             if cookies_from_browser:
                 cmd.extend(['--cookies-from-browser', cookies_from_browser])
@@ -435,7 +435,8 @@ Files created in output directory:
     parser.add_argument('--download-all', action='store_true',
                         help='Download all videos in CSV, not just new ones')
     parser.add_argument('--use-cookies-for-download', action='store_true',
-                        help='Also use cookies when downloading (usually not needed, may cause issues)')
+                        help='Also use cookies when downloading (needed as of mid-2026 - YouTube '
+                             'now returns HTTP 403 on cookie-free download requests)')
     parser.add_argument('--parse-title-artist', action='store_true',
                         help='Try to split "Artist - Title" formatted video titles into separate tags')
     parser.add_argument('--notify', '-n', action='store_true',
